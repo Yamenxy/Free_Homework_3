@@ -1,971 +1,864 @@
-
 /* =====================================================
-   HOMEWORK PAGE JS
-   Public Access - No Login / Registration / Attendance
+   HOMEWORK PAGE JAVASCRIPT
+   PUBLIC ACCESS
+   NO LOGIN
+   NO REGISTRATION
+   NO ATTENDANCE CHECK
    ===================================================== */
 
 
-/* ===== API URLs ===== */
+/* ================= API URLS ================= */
 
 const VIDEO_LIST_API =
-  'https://script.google.com/macros/s/AKfycbwfPtK-dCKZqWpTGJZm_uK5IisZ6UdB9jG3bLcsuMm3BKm3n1wJsr07WIZCFV-iJObS/exec';
+    "https://script.google.com/macros/s/AKfycbwfPtK-dCKZqWpTGJZm_uK5IisZ6UdB9jG3bLcsuMm3BKm3n1wJsr07WIZCFV-iJObS/exec";
 
 const VIDEO_LINKS_API =
-  'https://script.google.com/macros/s/AKfycbzuQr-TR31WuBCCg68twVK9F-nRtCD79VaTyLLltKEFm_nMGbQKHM4kIL9mT5JXKBNV/exec';
+    "https://script.google.com/macros/s/AKfycbzuQr-TR31WuBCCg68twVK9F-nRtCD79VaTyLLltKEFm_nMGbQKHM4kIL9mT5JXKBNV/exec";
 
 
-/* ===== Global Variables ===== */
+/* ================= GLOBAL VARIABLES ================= */
 
 let allVideos = [];
 
 let videoLinksCache = {};
 
 
-/* =====================================================
-   ON PAGE LOAD
-   ===================================================== */
+/* ================= SAFE LANGUAGE UPDATE ================= */
 
-document.addEventListener('DOMContentLoaded', () => {
+function safeUpdateLanguage() {
 
-  // Hide manual student code card
-  const codeCard = document.getElementById('codeCheckCard');
+    if (typeof updateLanguage === "function") {
+        updateLanguage();
+    }
 
-  if (codeCard) {
-    codeCard.style.display = 'none';
-  }
+}
 
-  // Start loading all homework videos
-  loadAllHomework();
+
+/* ================= PAGE LOAD ================= */
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    loadAllHomework();
 
 });
 
 
-/* =====================================================
-   LOAD ALL HOMEWORK
-   ===================================================== */
+/* ================= LOAD ALL HOMEWORK ================= */
 
 async function loadAllHomework() {
 
-  const autoCard = document.getElementById('autoLoadCard');
+    const autoCard =
+        document.getElementById("autoLoadCard");
 
-  const spinner = document.getElementById('autoLoadSpinner');
+    const spinner =
+        document.getElementById("autoLoadSpinner");
 
-  const titleEl = document.getElementById('autoLoadTitle');
+    const title =
+        document.getElementById("autoLoadTitle");
 
-  const msgEl = document.getElementById('autoLoadMsg');
+    const message =
+        document.getElementById("autoLoadMsg");
+
+    const homeworkList =
+        document.getElementById("homeworkList");
 
 
-  try {
+    try {
 
-    // Fetch videos only
-    await fetchVideoList();
+        if (autoCard) {
+            autoCard.style.display = "block";
+        }
 
+        await fetchVideoList();
 
-    // Hide loading card
-    if (autoCard) {
-      autoCard.style.display = 'none';
+        if (autoCard) {
+            autoCard.style.display = "none";
+        }
+
+        if (homeworkList) {
+            homeworkList.style.display = "block";
+        }
+
+        renderHomeworkCards();
+
+    } catch (error) {
+
+        console.error(
+            "Failed to load homework:",
+            error
+        );
+
+        if (spinner) {
+
+            spinner.className =
+                "fas fa-exclamation-triangle";
+
+            spinner.style.color =
+                "var(--error)";
+
+        }
+
+        if (title) {
+
+            title.textContent =
+                "Connection Error";
+
+            title.setAttribute(
+                "data-en",
+                "Connection Error"
+            );
+
+            title.setAttribute(
+                "data-ar",
+                "خطأ في الاتصال"
+            );
+
+        }
+
+        if (message) {
+
+            message.textContent =
+                "Failed to load homework videos. Please refresh the page.";
+
+            message.setAttribute(
+                "data-en",
+                "Failed to load homework videos. Please refresh the page."
+            );
+
+            message.setAttribute(
+                "data-ar",
+                "فشل تحميل فيديوهات الواجب. يرجى تحديث الصفحة."
+            );
+
+        }
+
+        safeUpdateLanguage();
+
     }
-
-
-    // Show homework list
-    document.getElementById('homeworkList').style.display = 'block';
-
-
-    // Render ALL homework videos
-    renderHomeworkCards();
-
-
-  } catch (err) {
-
-    console.error('Failed to load homework:', err);
-
-
-    if (spinner) {
-
-      spinner.className = 'fas fa-exclamation-triangle';
-
-      spinner.style.color = 'var(--error)';
-
-    }
-
-
-    if (titleEl) {
-
-      titleEl.textContent = 'Connection Error';
-
-      titleEl.setAttribute('data-en', 'Connection Error');
-
-      titleEl.setAttribute('data-ar', 'خطأ في الاتصال');
-
-    }
-
-
-    if (msgEl) {
-
-      msgEl.textContent =
-        'Failed to load homework. Please refresh the page.';
-
-      msgEl.setAttribute(
-        'data-en',
-        'Failed to load homework. Please refresh the page.'
-      );
-
-      msgEl.setAttribute(
-        'data-ar',
-        'فشل تحميل الواجبات. يرجى تحديث الصفحة.'
-      );
-
-    }
-
-    updateLanguage();
-
-  }
 
 }
 
 
-/* =====================================================
-   FETCH VIDEO LIST
-   ===================================================== */
+/* ================= FETCH VIDEO LIST ================= */
 
 async function fetchVideoList() {
 
-  const resp = await fetch(VIDEO_LIST_API, {
-
-    credentials: 'omit',
-
-    redirect: 'follow'
-
-  });
-
-
-  if (!resp.ok) {
-
-    throw new Error('Failed to fetch video list');
-
-  }
+    const response =
+        await fetch(VIDEO_LIST_API, {
+            method: "GET",
+            credentials: "omit",
+            redirect: "follow",
+            cache: "no-cache"
+        });
 
 
-  allVideos = await resp.json();
+    if (!response.ok) {
+
+        throw new Error(
+            `Video list request failed: ${response.status}`
+        );
+
+    }
 
 
-  if (!Array.isArray(allVideos)) {
+    const data =
+        await response.json();
 
-    throw new Error('Invalid video list format');
 
-  }
+    /*
+       Support different API response formats.
+    */
+
+    if (Array.isArray(data)) {
+
+        allVideos = data;
+
+    } else if (data && Array.isArray(data.videos)) {
+
+        allVideos = data.videos;
+
+    } else if (data && Array.isArray(data.data)) {
+
+        allVideos = data.data;
+
+    } else {
+
+        throw new Error(
+            "Invalid video list format"
+        );
+
+    }
 
 }
 
 
-/* =====================================================
-   RENDER ALL HOMEWORK CARDS
-   ===================================================== */
+/* ================= RENDER HOMEWORK CARDS ================= */
 
 function renderHomeworkCards() {
 
-  const grid = document.getElementById('homeworkGrid');
+    const grid =
+        document.getElementById("homeworkGrid");
 
 
-  if (
-    !allVideos ||
-    !Array.isArray(allVideos) ||
-    allVideos.length === 0
-  ) {
+    if (!grid) {
+        return;
+    }
 
-    grid.innerHTML = `
 
-      <div class="empty-state">
+    const availableVideos =
+        allVideos.filter(function (video) {
 
-        <i class="fas fa-inbox"></i>
+            if (!video) {
+                return false;
+            }
 
-        <p
-          data-en="No homework videos available yet"
-          data-ar="لا توجد فيديوهات واجب متاحة بعد"
-        >
-          No homework videos available yet
-        </p>
+            return (
+                (video.title &&
+                    String(video.title).trim()) ||
 
-      </div>
+                (video.imgSrc &&
+                    String(video.imgSrc).trim()) ||
 
-    `;
+                (Array.isArray(video.links) &&
+                    video.links.length > 0)
+            );
 
-    return;
+        });
 
-  }
 
+    if (availableVideos.length === 0) {
 
-  /*
-   * IMPORTANT:
-   * No attendance filtering.
-   * Every valid video is displayed to everyone.
-   */
+        grid.innerHTML = `
 
-  const availableVideos = [];
+            <div class="empty-state">
 
+                <i class="fas fa-inbox"></i>
 
-  allVideos.forEach((v, i) => {
+                <p
+                    data-en="No homework videos available yet"
+                    data-ar="لا توجد فيديوهات واجب متاحة بعد">
 
+                    No homework videos available yet
 
-    // Skip empty or placeholder rows
-    const hasContent = v && (
+                </p>
 
-      (v.title && String(v.title).trim()) ||
+            </div>
 
-      (v.imgSrc && String(v.imgSrc).trim()) ||
+        `;
 
-      (v.links &&
-       Array.isArray(v.links) &&
-       v.links.length > 0)
+        safeUpdateLanguage();
 
-    );
+        return;
 
+    }
 
-    if (!hasContent) return;
 
+    grid.innerHTML = "";
 
-    availableVideos.push({
 
-      ...v,
+    availableVideos.forEach(function (video, index) {
 
-      _index: i
+        const lectureNumber =
+            index + 1;
 
-    });
+        const pageName =
+            "video" + lectureNumber;
 
-  });
 
+        const title =
+            video.title ||
+            "Homework " + lectureNumber;
 
-  if (availableVideos.length === 0) {
 
-    grid.innerHTML = `
+        const card =
+            document.createElement("div");
 
-      <div class="empty-state">
 
-        <i class="fas fa-inbox"></i>
+        card.className =
+            "content-card";
 
-        <p
-          data-en="No homework videos available yet"
-          data-ar="لا توجد فيديوهات واجب متاحة بعد"
-        >
-          No homework videos available yet
-        </p>
 
-      </div>
+        card.style.animationDelay =
+            `${index * 0.1}s`;
 
-    `;
 
-    return;
+        let thumbnail = "";
 
-  }
 
+        if (video.imgSrc) {
 
-  grid.innerHTML = '';
+            thumbnail = `
 
+                <div style="
+                    background-image:url('${escapeAttr(video.imgSrc)}');
+                    background-size:cover;
+                    background-position:center;
+                    height:160px;
+                    border-radius:8px;
+                    margin-bottom:12px;
+                "></div>
 
-  availableVideos.forEach((video, idx) => {
+            `;
 
+        } else {
 
-    const lectureNum = video._index + 1;
+            thumbnail = `
 
+                <div class="card-icon">
 
-    const pageName = 'video' + lectureNum;
+                    <i class="fas fa-play-circle"></i>
 
+                </div>
 
-    const card = document.createElement('div');
-
-
-    card.className = 'content-card';
-
-
-    card.style.animationDelay = `${idx * 0.1}s`;
-
-
-    // Thumbnail style
-    const thumbStyle = video.imgSrc
-
-      ? `background-image:url('${escapeAttr(video.imgSrc)}');
-         background-size:cover;
-         background-position:center;
-         height:160px;
-         border-radius:8px;
-         margin-bottom:12px;`
-
-      : '';
-
-
-    card.innerHTML = `
-
-
-      ${
-        video.imgSrc
-
-          ? `<div style="${thumbStyle}"></div>`
-
-          : '<div class="card-icon"><i class="fas fa-play-circle"></i></div>'
-      }
-
-
-      <h3 class="card-title">
-
-        ${escapeHtml(video.title || 'Homework ' + lectureNum)}
-
-      </h3>
-
-
-      <p class="card-desc" style="margin-bottom:5px;">
-
-        <span
-          data-en="Lecture"
-          data-ar="المحاضرة"
-        >
-          Lecture
-        </span>
-
-        ${lectureNum}
-
-        — <i
-          class="fas fa-unlock-alt"
-          style="color:var(--success);"
-        ></i>
-
-        <span
-          data-en="Available for All"
-          data-ar="متاح للجميع"
-        >
-          Available for All
-        </span>
-
-      </p>
-
-
-      <div
-        class="video-source-btns"
-        id="videoBtns_${pageName}"
-        style="
-          display:flex;
-          gap:8px;
-          flex-wrap:wrap;
-          margin-top:10px;
-        "
-      >
-
-        <button
-          class="btn btn-primary btn-sm"
-          onclick="loadAndPlay('${escapeAttr(pageName)}')"
-        >
-
-          <i class="fas fa-play"></i>
-
-          <span
-            data-en="Watch"
-            data-ar="مشاهدة"
-          >
-            Watch
-          </span>
-
-        </button>
-
-      </div>
-
-    `;
-
-
-    grid.appendChild(card);
-
-  });
-
-
-  // Prefetch video links in the background
-  try {
-
-    const pageNames = availableVideos.map(
-
-      v => 'video' + (v._index + 1)
-
-    );
-
-
-    prefetchVideoLinks(pageNames);
-
-  } catch (e) {
-
-    console.warn('Prefetch failed:', e);
-
-  }
-
-
-  updateLanguage();
-
-}
-
-
-/* =====================================================
-   PREFETCH VIDEO LINKS
-   ===================================================== */
-
-function prefetchVideoLinks(pageNames) {
-
-  if (
-    !Array.isArray(pageNames) ||
-    pageNames.length === 0
-  ) {
-
-    return;
-
-  }
-
-
-  const concurrency = 3;
-
-
-  const queue = pageNames.slice();
-
-
-  async function worker() {
-
-
-    while (queue.length) {
-
-
-      const pageName = queue.shift();
-
-
-      if (!pageName) break;
-
-
-      if (videoLinksCache[pageName]) {
-
-        continue;
-
-      }
-
-
-      try {
-
-
-        const resp = await fetch(
-
-          `${VIDEO_LINKS_API}?pageName=${encodeURIComponent(pageName)}`,
-
-          {
-
-            credentials: 'omit',
-
-            redirect: 'follow'
-
-          }
-
-        );
-
-
-        if (!resp.ok) continue;
-
-
-        const links = await resp.json();
-
-
-        if (
-          links &&
-          (links.drive || links.pcloud || links.mega)
-        ) {
-
-          videoLinksCache[pageName] = links;
+            `;
 
         }
 
 
-      } catch (err) {
+        card.innerHTML = `
 
-        console.warn('Link prefetch failed:', err);
+            ${thumbnail}
 
-      }
+            <h3 class="card-title">
+
+                ${escapeHtml(title)}
+
+            </h3>
+
+            <p class="card-desc"
+                style="margin-bottom:5px;">
+
+                <span
+                    data-en="Lecture"
+                    data-ar="المحاضرة">
+
+                    Lecture
+
+                </span>
+
+                ${lectureNumber}
+
+                —
+
+                <i class="fas fa-unlock-alt"
+                    style="color:var(--success);">
+                </i>
+
+                <span
+                    data-en="Available for All"
+                    data-ar="متاح للجميع">
+
+                    Available for All
+
+                </span>
+
+            </p>
+
+            <div
+                class="video-source-btns"
+                id="videoBtns_${pageName}"
+                style="
+                    display:flex;
+                    gap:8px;
+                    flex-wrap:wrap;
+                    margin-top:10px;
+                ">
+
+                <button
+                    class="btn btn-primary btn-sm"
+                    type="button"
+                    onclick="loadAndPlay('${pageName}')">
+
+                    <i class="fas fa-play"></i>
+
+                    <span
+                        data-en="Watch"
+                        data-ar="مشاهدة">
+
+                        Watch
+
+                    </span>
+
+                </button>
+
+            </div>
+
+        `;
 
 
-      // Small delay
-      await new Promise(r => setTimeout(r, 200));
+        grid.appendChild(card);
 
-    }
-
-  }
+    });
 
 
-  for (let i = 0; i < concurrency; i++) {
+    safeUpdateLanguage();
 
-    worker();
 
-  }
+    /*
+       Load links in the background.
+    */
+
+    const pageNames =
+        availableVideos.map(function (_, index) {
+
+            return "video" + (index + 1);
+
+        });
+
+
+    prefetchVideoLinks(pageNames);
 
 }
 
 
-/* =====================================================
-   LOAD VIDEO LINKS
-   ===================================================== */
+/* ================= PREFETCH LINKS ================= */
+
+function prefetchVideoLinks(pageNames) {
+
+    if (!Array.isArray(pageNames)) {
+        return;
+    }
+
+
+    pageNames.forEach(function (pageName) {
+
+        if (videoLinksCache[pageName]) {
+            return;
+        }
+
+
+        fetchVideoLinks(pageName)
+            .catch(function (error) {
+
+                console.warn(
+                    "Prefetch failed:",
+                    error
+                );
+
+            });
+
+    });
+
+}
+
+
+/* ================= FETCH VIDEO LINKS ================= */
+
+async function fetchVideoLinks(pageName) {
+
+    const url =
+        `${VIDEO_LINKS_API}?pageName=${encodeURIComponent(pageName)}`;
+
+
+    const response =
+        await fetch(url, {
+            method: "GET",
+            credentials: "omit",
+            redirect: "follow",
+            cache: "no-cache"
+        });
+
+
+    if (!response.ok) {
+
+        throw new Error(
+            `Video links request failed: ${response.status}`
+        );
+
+    }
+
+
+    const links =
+        await response.json();
+
+
+    if (!links || typeof links !== "object") {
+
+        throw new Error(
+            "Invalid video links response"
+        );
+
+    }
+
+
+    videoLinksCache[pageName] =
+        links;
+
+
+    return links;
+
+}
+
+
+/* ================= LOAD AND PLAY ================= */
 
 async function loadAndPlay(pageName) {
 
-
-  const btnsContainer = document.getElementById(
-
-    'videoBtns_' + pageName
-
-  );
+    const container =
+        document.getElementById(
+            "videoBtns_" + pageName
+        );
 
 
-  if (!btnsContainer) return;
+    if (!container) {
+        return;
+    }
 
 
-  // Check cache
-  if (videoLinksCache[pageName]) {
+    if (videoLinksCache[pageName]) {
 
+        showSourceButtons(
+            pageName,
+            videoLinksCache[pageName],
+            container
+        );
 
-    showSourceButtons(
-
-      pageName,
-
-      videoLinksCache[pageName],
-
-      btnsContainer
-
-    );
-
-
-    return;
-
-  }
-
-
-  // Show loading
-  btnsContainer.innerHTML = `
-
-    <button
-      class="btn btn-primary btn-sm"
-      disabled
-    >
-
-      <i class="fas fa-spinner fa-spin"></i>
-
-      Loading...
-
-    </button>
-
-  `;
-
-
-  try {
-
-
-    const resp = await fetch(
-
-      `${VIDEO_LINKS_API}?pageName=${encodeURIComponent(pageName)}`,
-
-      {
-
-        credentials: 'omit',
-
-        redirect: 'follow'
-
-      }
-
-    );
-
-
-    if (!resp.ok) {
-
-      throw new Error('Failed to load video links');
+        return;
 
     }
 
 
-    const links = await resp.json();
+    container.innerHTML = `
 
+        <button
+            class="btn btn-primary btn-sm"
+            type="button"
+            disabled>
 
-    videoLinksCache[pageName] = links;
+            <i class="fas fa-spinner fa-spin"></i>
 
+            Loading...
 
-    showSourceButtons(
-
-      pageName,
-
-      links,
-
-      btnsContainer
-
-    );
-
-
-  } catch (err) {
-
-
-    console.error(err);
-
-
-    btnsContainer.innerHTML = `
-
-      <span style="color:var(--error);">
-
-        <i class="fas fa-exclamation-triangle"></i>
-
-        Failed to load links
-
-      </span>
+        </button>
 
     `;
 
-  }
+
+    try {
+
+        const links =
+            await fetchVideoLinks(pageName);
+
+
+        showSourceButtons(
+            pageName,
+            links,
+            container
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Failed to load video links:",
+            error
+        );
+
+
+        container.innerHTML = `
+
+            <span style="color:var(--error);">
+
+                <i class="fas fa-exclamation-triangle"></i>
+
+                Failed to load links
+
+            </span>
+
+        `;
+
+    }
 
 }
 
 
-/* =====================================================
-   SHOW SOURCE BUTTONS
-   ===================================================== */
+/* ================= SHOW SOURCE BUTTONS ================= */
 
-function showSourceButtons(title, links, container) {
+function showSourceButtons(
+    pageName,
+    links,
+    container
+) {
 
-
-  let html = '';
-
-
-  if (links.mega) {
+    let html = "";
 
 
-    html += `
+    if (links.mega) {
 
-      <button
-        class="btn btn-primary btn-sm"
-        onclick="playVideo('${escapeAttr(links.mega)}', '${escapeAttr(title)}', 'mega')"
-      >
+        html += `
 
-        <i class="fas fa-play"></i>
+            <button
+                class="btn btn-primary btn-sm"
+                type="button"
+                onclick="playVideo(
+                    '${escapeAttr(links.mega)}',
+                    '${escapeAttr(pageName)}',
+                    'mega'
+                )">
 
-        Mega
+                <i class="fas fa-play"></i>
 
-      </button>
+                Mega
 
-    `;
+            </button>
 
-  }
+        `;
 
-
-  if (links.drive) {
-
-
-    html += `
-
-      <button
-        class="btn btn-outline btn-sm"
-        onclick="playVideo('${escapeAttr(links.drive)}', '${escapeAttr(title)}', 'drive')"
-      >
-
-        <i class="fab fa-google-drive"></i>
-
-        Drive
-
-      </button>
-
-    `;
-
-  }
+    }
 
 
-  if (links.pcloud) {
+    if (links.drive) {
+
+        html += `
+
+            <button
+                class="btn btn-outline btn-sm"
+                type="button"
+                onclick="playVideo(
+                    '${escapeAttr(links.drive)}',
+                    '${escapeAttr(pageName)}',
+                    'drive'
+                )">
+
+                <i class="fab fa-google-drive"></i>
+
+                Drive
+
+            </button>
+
+        `;
+
+    }
 
 
-    html += `
+    if (links.pcloud) {
 
-      <button
-        class="btn btn-outline btn-sm"
-        onclick="playVideo('${escapeAttr(links.pcloud)}', '${escapeAttr(title)}', 'pcloud')"
-      >
+        html += `
 
-        <i class="fas fa-cloud"></i>
+            <button
+                class="btn btn-outline btn-sm"
+                type="button"
+                onclick="playVideo(
+                    '${escapeAttr(links.pcloud)}',
+                    '${escapeAttr(pageName)}',
+                    'pcloud'
+                )">
 
-        pCloud
+                <i class="fas fa-cloud"></i>
 
-      </button>
+                pCloud
 
-    `;
+            </button>
 
-  }
+        `;
 
-
-  if (!html) {
-
-
-    html = `
-
-      <span style="color:var(--text-muted);">
-
-        No links available
-
-      </span>
-
-    `;
-
-  }
+    }
 
 
-  container.innerHTML = html;
+    if (!html) {
 
-}
+        html = `
+
+            <span style="color:var(--text-muted);">
+
+                No links available
+
+            </span>
+
+        `;
+
+    }
 
 
-/* =====================================================
-   ESCAPE ATTRIBUTES
-   ===================================================== */
-
-function escapeAttr(str) {
-
-  return String(str)
-
-    .replace(/\\/g, '\\\\')
-
-    .replace(/'/g, "\\'")
-
-    .replace(/"/g, '&quot;');
+    container.innerHTML =
+        html;
 
 }
 
 
-/* =====================================================
-   ESCAPE HTML
-   ===================================================== */
+/* ================= PLAY VIDEO ================= */
 
-function escapeHtml(str) {
+function playVideo(
+    url,
+    title,
+    source
+) {
 
-  return String(str)
+    const playerSection =
+        document.getElementById(
+            "videoPlayerSection"
+        );
 
-    .replace(/&/g, '&amp;')
+    const listSection =
+        document.getElementById(
+            "homeworkList"
+        );
 
-    .replace(/</g, '&lt;')
+    const wrapper =
+        document.getElementById(
+            "videoWrapper"
+        );
 
-    .replace(/>/g, '&gt;')
-
-    .replace(/"/g, '&quot;')
-
-    .replace(/'/g, '&#039;');
-
-}
-
-
-/* =====================================================
-   PLAY VIDEO
-   ===================================================== */
-
-function playVideo(url, title, source) {
-
-
-  const playerSection = document.getElementById(
-
-    'videoPlayerSection'
-
-  );
+    const infoTitle =
+        document.getElementById(
+            "videoTitle"
+        );
 
 
-  const listSection = document.getElementById(
+    if (!playerSection ||
+        !listSection ||
+        !wrapper ||
+        !infoTitle) {
 
-    'homeworkList'
+        return;
 
-  );
-
-
-  const wrapper = document.getElementById(
-
-    'videoWrapper'
-
-  );
+    }
 
 
-  const infoTitle = document.getElementById(
-
-    'videoTitle'
-
-  );
+    listSection.style.display =
+        "none";
 
 
-  listSection.style.display = 'none';
+    playerSection.style.display =
+        "block";
 
 
-  playerSection.style.display = 'block';
+    infoTitle.textContent =
+        title || "Homework Video";
 
 
-  infoTitle.textContent = title || 'Homework Video';
+    let embedUrl =
+        url;
 
 
-  if (source === 'mega') {
+    if (source === "drive") {
+
+        embedUrl =
+            convertDriveToEmbed(url);
+
+    }
 
 
     wrapper.innerHTML = `
 
-      <iframe
+        <iframe
+            src="${escapeAttr(embedUrl)}"
+            frameborder="0"
+            allowfullscreen
+            allow="autoplay; encrypted-media"
+            style="
+                width:100%;
+                aspect-ratio:16/9;
+                border-radius:12px;
+            ">
 
-        src="${escapeAttr(url)}"
-
-        frameborder="0"
-
-        allowfullscreen
-
-        allow="autoplay; encrypted-media"
-
-        style="
-          width:100%;
-          aspect-ratio:16/9;
-          border-radius:12px;
-        "
-
-      ></iframe>
+        </iframe>
 
     `;
 
 
-  } else if (source === 'drive') {
-
-
-    const embedUrl = convertDriveToEmbed(url);
-
-
-    wrapper.innerHTML = `
-
-      <iframe
-
-        src="${escapeAttr(embedUrl)}"
-
-        frameborder="0"
-
-        allowfullscreen
-
-        allow="autoplay; encrypted-media"
-
-        style="
-          width:100%;
-          aspect-ratio:16/9;
-          border-radius:12px;
-        "
-
-      ></iframe>
-
-    `;
-
-
-  } else if (source === 'pcloud') {
-
-
-    wrapper.innerHTML = `
-
-      <iframe
-
-        src="${escapeAttr(url)}"
-
-        frameborder="0"
-
-        allowfullscreen
-
-        allow="autoplay; encrypted-media"
-
-        style="
-          width:100%;
-          aspect-ratio:16/9;
-          border-radius:12px;
-        "
-
-      ></iframe>
-
-    `;
-
-
-  } else {
-
-
-    wrapper.innerHTML = `
-
-      <iframe
-
-        src="${escapeAttr(url)}"
-
-        frameborder="0"
-
-        allowfullscreen
-
-        style="
-          width:100%;
-          aspect-ratio:16/9;
-          border-radius:12px;
-        "
-
-      ></iframe>
-
-    `;
-
-  }
+    playerSection.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
 
 }
 
 
-/* =====================================================
-   GOOGLE DRIVE EMBED
-   ===================================================== */
+/* ================= DRIVE EMBED ================= */
 
 function convertDriveToEmbed(url) {
 
+    const patterns = [
 
-  const patterns = [
+        /\/file\/d\/([a-zA-Z0-9_-]+)/,
 
-    /\/file\/d\/([a-zA-Z0-9_-]+)/,
+        /id=([a-zA-Z0-9_-]+)/,
 
-    /id=([a-zA-Z0-9_-]+)/,
+        /\/d\/([a-zA-Z0-9_-]+)/
 
-    /\/d\/([a-zA-Z0-9_-]+)/
-
-  ];
-
-
-  for (const p of patterns) {
+    ];
 
 
-    const m = url.match(p);
+    for (const pattern of patterns) {
+
+        const match =
+            String(url).match(pattern);
 
 
-    if (m) {
+        if (match) {
 
+            return `https://drive.google.com/file/d/${match[1]}/preview`;
 
-      return `https://drive.google.com/file/d/${m[1]}/preview`;
+        }
 
     }
 
-  }
 
-
-  return url;
+    return url;
 
 }
 
 
-/* =====================================================
-   CLOSE VIDEO PLAYER
-   ===================================================== */
+/* ================= CLOSE PLAYER ================= */
 
 function closeVideoPlayer() {
 
+    const player =
+        document.getElementById(
+            "videoPlayerSection"
+        );
 
-  document.getElementById(
+    const list =
+        document.getElementById(
+            "homeworkList"
+        );
 
-    'videoPlayerSection'
-
-  ).style.display = 'none';
-
-
-  document.getElementById(
-
-    'homeworkList'
-
-  ).style.display = 'block';
+    const wrapper =
+        document.getElementById(
+            "videoWrapper"
+        );
 
 
-  document.getElementById(
+    if (player) {
+        player.style.display = "none";
+    }
 
-    'videoWrapper'
 
-  ).innerHTML = '';
+    if (list) {
+        list.style.display = "block";
+    }
+
+
+    if (wrapper) {
+        wrapper.innerHTML = "";
+    }
+
+}
+
+
+/* ================= ESCAPE HTML ================= */
+
+function escapeHtml(value) {
+
+    return String(value)
+
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+
+/* ================= ESCAPE ATTRIBUTES ================= */
+
+function escapeAttr(value) {
+
+    return String(value)
+
+        .replace(/\\/g, "\\\\")
+        .replace(/'/g, "\\'")
+        .replace(/"/g, "&quot;");
 
 }
