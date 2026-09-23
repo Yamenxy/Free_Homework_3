@@ -3,22 +3,22 @@
    ============================ */
 
 // ===== AUTH GUARD (runs immediately) =====
-(function() {
-  const page = window.location.pathname.split('/').pop().toLowerCase() || 'index.html';
-  const publicPages = ['register.html', 'login.html'];
-  if (!publicPages.includes(page)) {
-    try {
-      const userData = localStorage.getItem('loggedInUser');
-      if (!userData) {
-        window.location.replace('register.html');
-        return;
-      }
-    } catch (e) {
-      window.location.replace('register.html');
-      return;
-    }
-  }
-})();
+// (function() {
+//   const page = window.location.pathname.split('/').pop().toLowerCase() || 'index.html';
+//   const publicPages = ['register.html', 'login.html'];
+//   if (!publicPages.includes(page)) {
+//     try {
+//       const userData = localStorage.getItem('loggedInUser');
+//       if (!userData) {
+//         window.location.replace('register.html');
+//         return;
+//       }
+//     } catch (e) {
+//       window.location.replace('register.html');
+//       return;
+//     }
+//   }
+// })();
 
 // ===== Language System =====
 let currentLang = localStorage.getItem('lang') || 'en';
