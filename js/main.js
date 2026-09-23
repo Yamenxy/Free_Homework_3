@@ -21,19 +21,18 @@
 // })();
 
 // ===== Language System =====
-let currentLang = localStorage.getItem('lang') || 'en';
-
 function setLanguage(lang) {
   currentLang = lang;
   localStorage.setItem('lang', lang);
-  
+
   const isArabic = lang === 'ar';
   document.documentElement.lang = lang;
   document.documentElement.dir = isArabic ? 'rtl' : 'ltr';
   document.body.dir = isArabic ? 'rtl' : 'ltr';
-  
+
   document.querySelectorAll('[data-en]').forEach(el => {
     const text = el.getAttribute(`data-${lang}`);
+
     if (text) {
       if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
         el.placeholder = text;
@@ -42,6 +41,15 @@ function setLanguage(lang) {
       }
     }
   });
+
+  const langText = document.getElementById('langText');
+  if (langText) {
+    langText.textContent = isArabic ? 'English' : 'عربي';
+  }
+
+  document.body.style.fontFamily =
+    isArabic ? "'Cairo', sans-serif" : "'Poppins', sans-serif";
+}
   
   const langText = document.getElementById('langText');
   if (langText) langText.textContent = isArabic ? 'English' : 'عربي';
@@ -57,13 +65,13 @@ function toggleLanguage() {
 
 // ===== Loader =====
 window.addEventListener('load', () => {
+window.addEventListener('load', () => {
   setTimeout(() => {
     const loader = document.getElementById('loader');
     if (loader) loader.classList.add('hidden');
   }, 1000);
-  
+
   setLanguage(currentLang);
-  updateNavAuth();
   initScrollAnimations();
   initParticles();
   initCounters();
@@ -207,71 +215,71 @@ function validatePhone(phone) {
 // ============================
 // AUTH SYSTEM
 // ============================
-function getLoggedInUser() {
-  try {
-    const userData = localStorage.getItem('loggedInUser');
-    if (!userData) return null;
-    return JSON.parse(userData);
-  } catch (e) { return null; }
-}
+// function getLoggedInUser() {
+//   try {
+//     const userData = localStorage.getItem('loggedInUser');
+//     if (!userData) return null;
+//     return JSON.parse(userData);
+//   } catch (e) { return null; }
+// }
 
-function loginUser(userData) {
-  localStorage.setItem('loggedInUser', JSON.stringify(userData));
-  updateNavAuth();
-}
+// function loginUser(userData) {
+//   localStorage.setItem('loggedInUser', JSON.stringify(userData));
+//   updateNavAuth();
+// }
 
-function logoutUser() {
-  localStorage.removeItem('loggedInUser');
-  const lang = localStorage.getItem('lang') || 'en';
-  showToast(lang === 'ar' ? 'تم تسجيل الخروج' : 'Logged out successfully', 'success');
-  setTimeout(() => { window.location.href = 'register.html'; }, 600);
-}
+// function logoutUser() {
+//   localStorage.removeItem('loggedInUser');
+//   const lang = localStorage.getItem('lang') || 'en';
+//   showToast(lang === 'ar' ? 'تم تسجيل الخروج' : 'Logged out successfully', 'success');
+//   setTimeout(() => { window.location.href = 'register.html'; }, 600);
+// }
 
-function updateNavAuth() {
-  const navAuth = document.getElementById('navAuth');
-  if (!navAuth) return;
+// function updateNavAuth() {
+//   const navAuth = document.getElementById('navAuth');
+//   if (!navAuth) return;
 
-  const user = getLoggedInUser();
-  const lang = localStorage.getItem('lang') || 'en';
+//   const user = getLoggedInUser();
+//   const lang = localStorage.getItem('lang') || 'en';
 
-  if (user) {
-    const profileText = lang === 'ar' ? 'ملفي' : 'Profile';
-    const logoutText = lang === 'ar' ? 'خروج' : 'Logout';
-    navAuth.innerHTML = `
-      <a href="profile.html" class="nav-link nav-profile-link" data-en="Profile" data-ar="ملفي">
-        <i class="fas fa-user-circle"></i> ${profileText}
-      </a>
-      <a href="#" class="nav-link" onclick="logoutUser(); return false;" data-en="Logout" data-ar="خروج">
-        <i class="fas fa-sign-out-alt"></i> ${logoutText}
-      </a>
-    `;
-    // Replace all register links with profile
-    document.querySelectorAll('a[href="register.html"]').forEach(link => {
-      link.href = 'profile.html';
-      const icon = link.querySelector('i.fa-user-plus');
-      if (icon) { icon.classList.remove('fa-user-plus'); icon.classList.add('fa-user-circle'); }
-      if (link.getAttribute('data-en')) {
-        link.setAttribute('data-en', 'Profile');
-        link.setAttribute('data-ar', 'ملفي');
-        link.textContent = lang === 'ar' ? 'ملفي' : 'Profile';
-      }
-      const span = link.querySelector('span[data-en]');
-      if (span) {
-        span.setAttribute('data-en', 'My Profile');
-        span.setAttribute('data-ar', 'ملفي الشخصي');
-        span.textContent = lang === 'ar' ? 'ملفي الشخصي' : 'My Profile';
-      }
-    });
-  } else {
-    const loginText = lang === 'ar' ? 'دخول' : 'Login';
-    const registerText = lang === 'ar' ? 'التسجيل' : 'Register';
-    navAuth.innerHTML = `
-      <a href="login.html" class="nav-link" data-en="Login" data-ar="دخول">
-        <i class="fas fa-sign-in-alt"></i> ${loginText}
-      </a>
-      <a href="register.html" class="nav-link" data-en="Register" data-ar="التسجيل">
-        <i class="fas fa-user-plus"></i> ${registerText}
-      </a>
-    `;
-  }
-}
+//   if (user) {
+//     const profileText = lang === 'ar' ? 'ملفي' : 'Profile';
+//     const logoutText = lang === 'ar' ? 'خروج' : 'Logout';
+//     navAuth.innerHTML = `
+//       <a href="profile.html" class="nav-link nav-profile-link" data-en="Profile" data-ar="ملفي">
+//         <i class="fas fa-user-circle"></i> ${profileText}
+//       </a>
+//       <a href="#" class="nav-link" onclick="logoutUser(); return false;" data-en="Logout" data-ar="خروج">
+//         <i class="fas fa-sign-out-alt"></i> ${logoutText}
+//       </a>
+//     `;
+//     // Replace all register links with profile
+//     document.querySelectorAll('a[href="register.html"]').forEach(link => {
+//       link.href = 'profile.html';
+//       const icon = link.querySelector('i.fa-user-plus');
+//       if (icon) { icon.classList.remove('fa-user-plus'); icon.classList.add('fa-user-circle'); }
+//       if (link.getAttribute('data-en')) {
+//         link.setAttribute('data-en', 'Profile');
+//         link.setAttribute('data-ar', 'ملفي');
+//         link.textContent = lang === 'ar' ? 'ملفي' : 'Profile';
+//       }
+//       const span = link.querySelector('span[data-en]');
+//       if (span) {
+//         span.setAttribute('data-en', 'My Profile');
+//         span.setAttribute('data-ar', 'ملفي الشخصي');
+//         span.textContent = lang === 'ar' ? 'ملفي الشخصي' : 'My Profile';
+//       }
+//     });
+//   } else {
+//     const loginText = lang === 'ar' ? 'دخول' : 'Login';
+//     const registerText = lang === 'ar' ? 'التسجيل' : 'Register';
+//     navAuth.innerHTML = `
+//       <a href="login.html" class="nav-link" data-en="Login" data-ar="دخول">
+//         <i class="fas fa-sign-in-alt"></i> ${loginText}
+//       </a>
+//       <a href="register.html" class="nav-link" data-en="Register" data-ar="التسجيل">
+//         <i class="fas fa-user-plus"></i> ${registerText}
+//       </a>
+//     `;
+//   }
+// }
